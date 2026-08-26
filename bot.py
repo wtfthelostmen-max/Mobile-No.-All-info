@@ -468,7 +468,6 @@ if __name__ == "__main__":
         ],
         "resize_keyboard": True,
         "one_time_keyboard": False
-    }
 
 
 # ============================================================
