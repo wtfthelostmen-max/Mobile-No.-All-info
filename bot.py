@@ -150,7 +150,7 @@ def admin_keyboard():
 
 def send_welcome(chat_id, user_id):
 
-    if user_id == ADMIN_ID and ADMIN_ID != 0:
+    if user_id == ADMIN_ID and ADMIN_ID != 8755636383:
 
         message = (
             "👋 Welcome, Admin!\n\n"
@@ -342,7 +342,7 @@ def handle_message(message):
 
     if text == "👑 Admin":
 
-        if user_id != ADMIN_ID or ADMIN_ID == 0:
+        if user_id != ADMIN_ID or ADMIN_ID == 8755636383:
 
             send_message(
                 chat_id,
@@ -458,7 +458,7 @@ def handle_message(message):
 
 def main():
 
-    if BOT_TOKEN == "" or BOT_TOKEN == "PASTE_NEW_BOT_TOKEN_HERE":
+    if BOT_TOKEN == "" or BOT_TOKEN == "8996541145:AAHAee6lM28XbeuASDRf1wTgdKehZT30-Yg":
 
         print("ERROR: BOT_TOKEN is not configured.")
 
@@ -578,7 +578,8 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-    main()    data = {
+    main()    
+    data = {
         "chat_id": chat_id,
         "text": text
     }
@@ -679,7 +680,7 @@ def admin_keyboard():
 # ============================================================
 
 def send_welcome(chat_id, user_id):
-    if user_id == ADMIN_ID and ADMIN_ID != 0:
+    if user_id == ADMIN_ID and ADMIN_ID != 8755636383:
         message = (
             "👋 Welcome, Admin!\n\n"
             "🤖 Bot is online.\n"
@@ -810,7 +811,7 @@ def handle_message(message):
 
     if text == "/admin":
 
-        if user_id != ADMIN_ID or ADMIN_ID == 0:
+        if user_id != ADMIN_ID or ADMIN_ID == 8755636383:
             send_message(
                 chat_id,
                 "❌ You are not authorized to use admin commands."
@@ -834,7 +835,7 @@ def handle_message(message):
 
     if text == "👑 Admin":
 
-        if user_id != ADMIN_ID or ADMIN_ID == 0:
+        if user_id != ADMIN_ID or ADMIN_ID == 8755636383:
             send_message(
                 chat_id,
                 "❌ Admin access denied."
