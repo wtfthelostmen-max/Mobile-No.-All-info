@@ -1011,7 +1011,7 @@ if __name__ == "__main__":
                     "text": "📱 Phone Lookup"
                 }
             ]
-        ],
+    ],
         "resize_keyboard": True,
         "one_time_keyboard": False
 
@@ -1042,7 +1042,7 @@ def call_external_api(phone_number):
         return {
             "success": False,
             "error": "EXTERNAL_API_URL is not configured."
-        }
+    }
 
     try:
         # Adjust the parameter name to match your own authorized API.
@@ -1050,9 +1050,9 @@ def call_external_api(phone_number):
             EXTERNAL_API_URL,
             params={
                 "phone": phone_number
-            },
+    },
             timeout=30
-        )
+    )
 
         # Convert API response to JSON
         return response.json()
@@ -1061,14 +1061,14 @@ def call_external_api(phone_number):
         return {
             "success": False,
             "error": "External API did not return valid JSON."
-        }
+    }
 
     except Exception as error:
         return {
             "success": False,
             "error": "External API request failed.",
             "details": str(error)
-        }
+    }
 
 
 # ============================================================
@@ -1103,7 +1103,7 @@ def handle_message(message):
             chat_id,
             "📞 Send 10 digit mobile number:",
             reply_markup=main_keyboard()
-        )
+    )
         return
 
     # --------------------------------------------------------
@@ -1117,7 +1117,7 @@ def handle_message(message):
                 chat_id,
                 "❌ Invalid number.\n\n"
                 "Please send exactly 10 digits."
-            )
+    )
             return
 
         # ----------------------------------------------------
@@ -1127,7 +1127,7 @@ def handle_message(message):
         send_message(
             chat_id,
             "⏳ Processing your request..."
-        )
+    )
 
         result = call_external_api(text)
 
@@ -1136,7 +1136,7 @@ def handle_message(message):
             result,
             indent=2,
             ensure_ascii=False
-        )
+    )
 
         # Telegram HTML message
         output = "<pre>" + formatted_json + "</pre>"
@@ -1146,7 +1146,7 @@ def handle_message(message):
             output,
             parse_mode="HTML",
             reply_markup=main_keyboard()
-        )
+    )
 
         return
 
