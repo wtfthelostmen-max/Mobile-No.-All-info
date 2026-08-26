@@ -1004,7 +1004,8 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-    main()        "keyboard": [
+    main()        
+    "keyboard": [
             [
                 {
                     "text": "📱 Phone Lookup"
