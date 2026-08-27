@@ -10,9 +10,22 @@ import requests
 BOT_TOKEN = "8996541145:AAHAee6lM28XbeuASDRf1wTgdKehZT30-Yg"
 ADMIN_ID = 8755636383
 
-# RapidAPI Credentials (Routing Number Bank Lookup)
-RAPIDAPI_HOST = "routing-number-bank-lookup.p.rapidapi.com"
-RAPIDAPI_KEY = "cb62ff742emshbc0487ab2ad6aedp1dc6b4jsne6838bd9f298"
+import http.client
+
+conn = http.client.HTTPSConnection("aadhar-to-pan-api.p.rapidapi.com")
+
+headers = {
+    'x-rapidapi-key': "cb62ff742emshbc0487ab2ad6aedp1dc6b4jsne6838bd9f298",
+    'x-rapidapi-host': "aadhar-to-pan-api.p.rapidapi.com",
+    'Content-Type': "application/json"
+}
+
+conn.request("GET", "/index.php", headers=headers)
+
+res = conn.getresponse()
+data = res.read()
+
+print(data.decode("utf-8"))
 
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
