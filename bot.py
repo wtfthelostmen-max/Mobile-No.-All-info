@@ -1,8 +1,7 @@
-import requests
+import html
 import json
 import time
-import html
-
+import requests
 
 # ============================================================
 # CONFIGURATION
@@ -11,8 +10,9 @@ import html
 BOT_TOKEN = "8996541145:AAHAee6lM28XbeuASDRf1wTgdKehZT30-Yg"
 ADMIN_ID = 8755636383
 
-# Apne External API ka sahi URL yahan dalein (e.g. "https://api.example.com/lookup")
-EXTERNAL_API_URL = "num to info"
+# RapidAPI Credentials
+RAPIDAPI_HOST = "phone-lookup-api-sent-dm.p.rapidapi.com"
+RAPIDAPI_KEY = "cb62ff742emshbc0487ab2ad6aedp1dc6b4jsne6838bd9f298"
 
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
@@ -21,13 +21,11 @@ TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 # SEND MESSAGE
 # ============================================================
 
+
 def send_message(chat_id, text, reply_markup=None, parse_mode=None):
     url = f"{TELEGRAM_API}/sendMessage"
 
-    data = {
-        "chat_id": chat_id,
-        "text": str(text)
-    }
+    data = {"chat_id": chat_id, "text": str(text)}
 
     if reply_markup is not None:
         data["reply_markup"] = json.dumps(reply_markup)
@@ -50,6 +48,7 @@ def send_message(chat_id, text, reply_markup=None, parse_mode=None):
 # GET UPDATES
 # ============================================================
 
+
 def get_updates(offset):
     url = f"{TELEGRAM_API}/getUpdates"
     params = {"offset": offset, "timeout": 30}
@@ -69,30 +68,27 @@ def get_updates(offset):
 # KEYBOARDS
 # ============================================================
 
+
 def main_keyboard():
     return {
-        "keyboard": [
-            [{"text": "📱 Phone Lookup"}]
-        ],
+        "keyboard": [[{"text": "📱 Phone Lookup"}]],
         "resize_keyboard": True,
-        "one_time_keyboard": False
+        "one_time_keyboard": False,
     }
 
 
 def admin_keyboard():
     return {
-        "keyboard": [
-            [{"text": "📱 Phone Lookup"}],
-            [{"text": "👑 Admin"}]
-        ],
+        "keyboard": [[{"text": "📱 Phone Lookup"}], [{"text": "👑 Admin"}]],
         "resize_keyboard": True,
-        "one_time_keyboard": False
+        "one_time_keyboard": False,
     }
 
 
 # ============================================================
 # WELCOME MESSAGE
 # ============================================================
+
 
 def send_welcome(chat_id, user_id):
     if user_id == ADMIN_ID:
@@ -104,64 +100,81 @@ def send_welcome(chat_id, user_id):
         send_message(chat_id, message, reply_markup=admin_keyboard())
     else:
         message = (
-            "👋 Welcome!\n\n"
-            "👇 Please choose an option from the menu below:"
+            "👋 Welcome!\n\n👇 Please choose an option from the menu below:"
         )
         send_message(chat_id, message, reply_markup=main_keyboard())
 
 
 # ============================================================
-# EXTERNAL API REQUEST
+# EXTERNAL API REQUEST (RAPIDAPI INTEGRATION)
 # ============================================================
 
+
 def call_external_api(phone_number):
-    if not EXTERNAL_API_URL or EXTERNAL_API_URL == "num to info":
+    if not RAPIDAPI_KEY:
         return {
             "success": False,
-            "error": "EXTERNAL_API_URL is not properly configured."
+            "error": "RAPIDAPI_KEY is missing.",
         }
+
+    url = f"https://{RAPIDAPI_HOST}/phone-lookup"
+
+    headers = {
+        "x-rapidapi-host": RAPIDAPI_HOST,
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "Content-Type": "application/json",
+    }
+
+    params = {"phone": phone_number}
 
     try:
         response = requests.get(
-            EXTERNAL_API_URL,
-            params={"phone": phone_number},
-            timeout=30
+            url, headers=headers, params=params, timeout=30
         )
-        
+
         try:
             return response.json()
         except ValueError:
             return {
                 "success": False,
                 "error": "API did not return valid JSON.",
-                "response": response.text[:1000]
+                "response": response.text[:1000],
             }
 
     except requests.exceptions.Timeout:
         return {"success": False, "error": "External API request timed out."}
     except requests.exceptions.RequestException as error:
-        return {"success": False, "error": "API request failed.", "details": str(error)}
+        return {
+            "success": False,
+            "error": "API request failed.",
+            "details": str(error),
+        }
     except Exception as error:
-        return {"success": False, "error": "Unexpected API error.", "details": str(error)}
+        return {
+            "success": False,
+            "error": "Unexpected API error.",
+            "details": str(error),
+        }
 
 
 # ============================================================
 # FORMAT JSON FOR TELEGRAM
 # ============================================================
 
+
 def format_json(data):
     try:
         formatted = json.dumps(data, indent=2, ensure_ascii=False)
     except Exception:
         formatted = str(data)
-    
-    # HTML safe string formatting
+
     return html.escape(formatted)
 
 
 # ============================================================
 # HANDLE MESSAGE
 # ============================================================
+
 
 def handle_message(message):
     if "chat" not in message:
@@ -184,7 +197,9 @@ def handle_message(message):
     # Admin Panel
     if text in ["/admin", "👑 Admin"]:
         if user_id != ADMIN_ID:
-            send_message(chat_id, "❌ You are not authorized to use admin commands.")
+            send_message(
+                chat_id, "❌ You are not authorized to use admin commands."
+            )
             return
 
         admin_msg = (
@@ -193,7 +208,9 @@ def handle_message(message):
             "📡 Polling: Active\n"
             "🔐 Admin Verification: Active"
         )
-        send_message(chat_id, admin_msg, parse_mode="HTML", reply_markup=admin_keyboard())
+        send_message(
+            chat_id, admin_msg, parse_mode="HTML", reply_markup=admin_keyboard()
+        )
         return
 
     # Phone Lookup Menu Button
@@ -201,7 +218,7 @@ def handle_message(message):
         send_message(
             chat_id,
             "📞 Send a 10-digit mobile number:",
-            reply_markup=main_keyboard()
+            reply_markup=main_keyboard(),
         )
         return
 
@@ -210,25 +227,27 @@ def handle_message(message):
         if len(text) != 10:
             send_message(
                 chat_id,
-                "❌ Invalid mobile number.\n\nPlease send exactly 10 digits.\n\nExample:\n9876543210"
+                "❌ Invalid mobile number.\n\nPlease send exactly 10 digits.\n\nExample:\n9876543210",
             )
             return
 
         send_message(chat_id, "⏳ Processing your request...")
-        
+
         result = call_external_api(text)
         formatted_result = format_json(result)
 
         telegram_message = f"📋 <b>Result:</b>\n<pre>{formatted_result}</pre>"
 
         if len(telegram_message) > 3900:
-            telegram_message = telegram_message[:3800] + "\n\n...Result truncated.</pre>"
+            telegram_message = (
+                telegram_message[:3800] + "\n\n...Result truncated.</pre>"
+            )
 
         send_message(
             chat_id,
             telegram_message,
             parse_mode="HTML",
-            reply_markup=main_keyboard()
+            reply_markup=main_keyboard(),
         )
         return
 
@@ -236,13 +255,14 @@ def handle_message(message):
     send_message(
         chat_id,
         "❌ Invalid input.\n\nPlease select an option from the menu.",
-        reply_markup=main_keyboard()
+        reply_markup=main_keyboard(),
     )
 
 
 # ============================================================
 # MAIN LOOP
 # ============================================================
+
 
 def main():
     if not BOT_TOKEN:
@@ -252,7 +272,7 @@ def main():
     print("====================================")
     print("Telegram Bot Started")
     print(f"Admin ID: {ADMIN_ID}")
-    print(f"External API: {EXTERNAL_API_URL}")
+    print(f"RapidAPI Host: {RAPIDAPI_HOST}")
     print("====================================")
 
     offset = 0
@@ -295,4 +315,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
