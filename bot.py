@@ -10,8 +10,8 @@ import requests
 BOT_TOKEN = "8996541145:AAHAee6lM28XbeuASDRf1wTgdKehZT30-Yg"
 ADMIN_ID = 8755636383
 
-# RapidAPI Credentials
-RAPIDAPI_HOST = "phone-lookup-api-sent-dm.p.rapidapi.com"
+# RapidAPI Credentials (Routing Number Bank Lookup)
+RAPIDAPI_HOST = "routing-number-bank-lookup.p.rapidapi.com"
 RAPIDAPI_KEY = "cb62ff742emshbc0487ab2ad6aedp1dc6b4jsne6838bd9f298"
 
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
@@ -71,7 +71,7 @@ def get_updates(offset):
 
 def main_keyboard():
     return {
-        "keyboard": [[{"text": "📱 Phone Lookup"}]],
+        "keyboard": [[{"text": "🏦 Bank Lookup"}]],
         "resize_keyboard": True,
         "one_time_keyboard": False,
     }
@@ -79,7 +79,7 @@ def main_keyboard():
 
 def admin_keyboard():
     return {
-        "keyboard": [[{"text": "📱 Phone Lookup"}], [{"text": "👑 Admin"}]],
+        "keyboard": [[{"text": "🏦 Bank Lookup"}], [{"text": "👑 Admin"}]],
         "resize_keyboard": True,
         "one_time_keyboard": False,
     }
@@ -106,18 +106,19 @@ def send_welcome(chat_id, user_id):
 
 
 # ============================================================
-# EXTERNAL API REQUEST (RAPIDAPI INTEGRATION)
+# EXTERNAL API REQUEST (BANK ROUTING LOOKUP)
 # ============================================================
 
 
-def call_external_api(phone_number):
+def call_external_api(routing_number):
     if not RAPIDAPI_KEY:
         return {
             "success": False,
             "error": "RAPIDAPI_KEY is missing.",
         }
 
-    url = f"https://{RAPIDAPI_HOST}/phone-lookup"
+    # API Endpoint URL
+    url = f"https://{RAPIDAPI_HOST}/api/v1/{routing_number}"
 
     headers = {
         "x-rapidapi-host": RAPIDAPI_HOST,
@@ -125,7 +126,7 @@ def call_external_api(phone_number):
         "Content-Type": "application/json",
     }
 
-    params = {"phone": phone_number}
+    params = {"format": "json", "paymentType": "ach"}
 
     try:
         response = requests.get(
@@ -213,30 +214,33 @@ def handle_message(message):
         )
         return
 
-    # Phone Lookup Menu Button
-    if text == "📱 Phone Lookup":
+    # Bank Lookup Menu Button
+    if text in ["📱 Phone Lookup", "🏦 Bank Lookup"]:
         send_message(
             chat_id,
-            "📞 Send a 10-digit mobile number:",
+            "🏦 Send Routing Number (e.g., 121000248):",
             reply_markup=main_keyboard(),
         )
         return
 
-    # Process Phone Number
+    # Process Routing Number / Input
     if text.isdigit():
-        if len(text) != 10:
-            send_message(
-                chat_id,
-                "❌ Invalid mobile number.\n\nPlease send exactly 10 digits.\n\nExample:\n9876543210",
-            )
-            return
-
-        send_message(chat_id, "⏳ Processing your request...")
-
         result = call_external_api(text)
-        formatted_result = format_json(result)
 
-        telegram_message = f"📋 <b>Result:</b>\n<pre>{formatted_result}</pre>"
+        # Handle Errors gracefully
+        if isinstance(result, dict) and "message" in result:
+            if result["message"] == "You are not subscribed to this API.":
+                telegram_message = "❌ <b>Error:</b> RapidAPI par is Routing Number API ko Subscribe karein."
+            elif result["message"] == "Too many requests":
+                telegram_message = "⚠️ <b>Error:</b> Rate limit exceed ho gayi hai. Thodi der baad try karein."
+            else:
+                formatted_result = format_json(result)
+                telegram_message = (
+                    f"📋 <b>Result:</b>\n<pre>{formatted_result}</pre>"
+                )
+        else:
+            formatted_result = format_json(result)
+            telegram_message = f"📋 <b>Result:</b>\n<pre>{formatted_result}</pre>"
 
         if len(telegram_message) > 3900:
             telegram_message = (
